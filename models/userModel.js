@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var schema = mongoose.Schema;
 
 var userKey = new schema({
-    userName: {
+    name: {
         type: String,
         required:true
     },
@@ -12,16 +12,23 @@ var userKey = new schema({
     },
     password: {
         type: String,
-        required:true
+        required: [true, "please enter a valid password"],
+        minLength: [8, "password should be greater than 8 character"]
     },
-    address:{
+    mobileNumber:{
         type: String,
-        required: true
+        required: [true, "please enter a valid mobileNumber"],
+        minLength: [10, "mobileNumber should be  10 character"]
     },
    status: {
         type: String,
         enum: ["ACTIVE", "INACTIVE", "DELETE"],
         default: "ACTIVE"
+    },     
+   role: {
+        type: String,
+        enum: ["ADMIN", "MEMBER", "TRAINER"],
+        default: "ADMIN"
     },     
 },
     {

@@ -7,29 +7,29 @@ const salt = bcrypt.genSaltSync(saltRounds);
 
 module.exports = {
 
-    //Adding Active & InACTIVE users
+    //Adding  user // Register
 
 
     addUser: async function (req, res) {
-        const query = ({$or: [{ email: req.body.email},{userName: req.body.userName}] })
+        const query = ({$or: [{ email: req.body.email},{mobileNumber: req.body.mobileNumber}] })
         const document = await userModel.findOne(query);
 
-        if(!req.body.email && !req.body.userName) {
+        if(!req.body.email && !req.body.mobileNumber) {
             return res.status(404).json({status: false, msg: "email & mobile Number not define"})
         }
         else if(document !=null && (document.email == req.body.email)) {
             return res.status(400).json({status: false, msg: "email already exists"});
         } 
-        else if(document != null && (document.userName == req.body.userName)) {
+        else if(document != null && (document.mobileNumber == req.body.mobileNumber)) {
             return res.status(400).json({status: false, msg: "mobile number is already exists."})
         }
         else {
            
             var userVariable = {
 
-                "userName": req.body.userName,
+                "mobileNumber": req.body.mobileNumber,
                 "email" : req.body.email,
-                "address" : req.body.address
+                "name" : req.body.name
             }
              if(req.body.password) {
                 userVariable.password =  bcrypt.hashSync(req.body.password, salt)
@@ -67,28 +67,6 @@ module.exports = {
             }
         })
     },
-//edit user details .....................................................................................
-    edit: async function (req, res) {
-        try {
-            console.log("working ")
-            var userVariable = {
-                userName: req.body.userName,
-            }
-
-            var getUser = await userModel.findOne({ _id: mongoose.Types.ObjectId(req.body.userId) }).exec();
-            console.log(getUser, "getUser");
-            if (getUser != null) {
-
-                var editUserData = await userModel.findByIdAndUpdate({ _id: mongoose.Types.ObjectId(req.body.userId) }, userVariable, { new: true });
-                res.status(200).json({ status: 'success', message: 'User data updated Successfully', data: editUserData });
-            }
-            else {
-                return res.send({ status: 'error', message: "User data not found", data: [] });
-            }
-        } catch (error) {
-            return res.status(500).json({ status: "error", msg: 'Something Went Wrong', data: null });
-        }
-    },
 
     // log API using JSON WEB token...........................................................................
     
@@ -122,10 +100,10 @@ module.exports = {
               {
                 _id: result._id,
                 email: result.email,
-                userName: result.userName,
+                mobileNumber: result.mobileNumber,
               },
               "secretKey",
-              { expiresIn: "1h" }
+              { expiresIn: "30d" }
             );
             var data = {
               token: token,
@@ -149,46 +127,7 @@ module.exports = {
     } catch (error) {
       return res.send({ status: "error", message: "Something went wrong!" });
     }
-  },
-  // API for ForgotPassword
-    forgotPassword: (req, res) => {
-        try {
-            
-            const query = { $and: [{ email: req.body.email },{ status: { $ne: "DELETE" } }] }
-            userModel.findOne(query, (error, result) => {
-                console.log("result", result)
-                if (error) {
-                    return res.send({ responseCode: 500, responseMessage: "Internal server error.", responseResult: error });
-                }
-                else if (!result) {
+  }
 
-                    return res.send({ responseCode: 409, responseMessage: "Email or mobileNumber not found", responseResult: [] });
-                }
-                else {
-                    var fullName = `${req.body.firstName} ${req.body.lastName}`;
-                    req.body.otp = commonFunction.getOtp();
-                    req.body.otpTime = new Date().getTime();
-
-                    commonFunction.sendEmail(req.body.email, fullName, req.body.otp, (emailErr, emailRes) => {
-                        if (emailErr) {
-                            return res.send({ responseCode: 500, responseMessage: "Internal server error.", responseResult: emailErr });
-                        } else {
-                            console.log(result._id);
-                            userModel.findByIdAndUpdate({ _id: result._id }, { $set: { otp: req.body.otp, otpTime: req.body.otpTime } }, (updateErr, updateRes) => {
-                                if (updateErr) {
-                                    res.send({ responseCode: 500, responseMessage: "intenel error", responseResult: updateErr });
-                                }
-                                else {
-                                    res.send({ responseCode: 200, responseMessage: "resend otp sucess", responseResult: updateRes });
-                                }
-                            })
-                        }
-                    })
-                }
-            })
-        } catch (error) {
-            return res.send({ responseCode: 501, responseMessage: "Something went wrong!" })
-        }
     }
 
-}

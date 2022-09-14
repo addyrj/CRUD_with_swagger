@@ -6,8 +6,6 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^6.3.2",
     "nodemon": "^2.0.16",
-    "salt": "^0.5.5",
-    "swagger-jsdoc": "6.00",
-    "swagger-ui-express": "^4.5.0"
+    "salt": "^0.5.5"
   }
 }
